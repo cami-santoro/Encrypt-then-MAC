@@ -54,6 +54,7 @@ def Decrypt(key,block, iv):
 
 def Verify_MAC(ciphertext, tag, k1,k2):
     computed_tag = NMAC(ciphertext, k1,k2).digest()
+    print("expected tag: ", computed_tag)
     return tag == computed_tag
 
 def main():
@@ -63,6 +64,7 @@ def main():
     #message=b'CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC'
     #message=b""
     #message=b""
+    message=b"Hello, we are team 10"
     print("original message: ", message)
     if(len(message)==0):
         return
@@ -102,24 +104,21 @@ def main():
     if(len(cipher_block)==1):
        encrypted_message=cipher_block[0]
     for i in range (len(cipher_block)-1):
-        #encrypted_message+=str(cipher_block[i])
         encrypted_message+=str(binascii.hexlify(cipher_block[i]).decode())
-        #print(binascii.hexlify(cipher_block[i]).decode())
     print("encrypted message: ", encrypted_message)
-    #m1 = ' '.join(format(byte, '08b') for byte in encrypted_message.encode())
-    #m1=m1.replace(' ',"")
-    #print("m1: ", m1)
-    #generate tag
+
     (M_k1, M_k2)= macKeyGen()
     tag=NMAC(encrypted_message, M_k1, M_k2).digest()
-    print("tag: ", tag)
+    
 
     #----- DECRYPTION -----
     #check the tag
+    print("received tag: ", tag)
     if(Verify_MAC(encrypted_message, tag , M_k1, M_k2)==0):
-        print("The message has been alterated")
+        print("The message has been altered")
         return 0
-    
+    else:
+        print("No alterations found")
     #if okay, then decrypt
     decrypted_block=[]
     for block in cipher_block:

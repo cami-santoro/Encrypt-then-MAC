@@ -1,15 +1,3 @@
-#IMPORTANT 1: WE ARE APPLYING THE CTR MODE AT EACH BLOCK AND DOING THIS EACH BLOCK HAS AN EXTRA BLOCK AND NOT ONLY THE FIRST ONE!
-#A SOLUTION COULD BE TO APPLY ECB MODE TO OTHER BLOCKS
-
-#IMPORTANT 1.2: IN THE ENCRYPTION FUNCTION THE XOR WITH THE MESSAGE IS DONE AUTOMATICALLY BY THE FUNCTION 
-
-#IMPORTANT 2: THE IV IS ONLY INCREMENTED AND NOT GENERATED AGAIN
-
-#IMPORTANT 3: THE MAC CHECK FUNCTION NEEDS TO HAVE THE ORIGINAL MAC KEYS IN ORDER TO WORK
-
-#TO DO: CHECK IF THOSE BYTES AND BIT TRANSORMATION IS ACTUALLY NEEDED
-
-
 from Crypto.Random import get_random_bytes
 from Crypto.Cipher import AES
 import binascii
@@ -23,8 +11,10 @@ def ivGen():
 
 def Encrypt(key,block, iv):
     cipher = AES.new(key, AES.MODE_CTR, nonce=b'', initial_value=iv)
+    #print("block: ", block)
     byte_list = [block[i:i+8] for i in range(0, len(block), 8)]
     block1="".join(chr(int(byte, 2)) for byte in byte_list).encode()
+    #print("block1: ", block1)
     cipher1=cipher.encrypt(block1)
     return cipher1
 
@@ -35,8 +25,8 @@ def Decrypt(key,block, iv):
 
 def padding(block):
     global applied_padding
-    l=len(block)/8
-    l1=int((128-8*l)/(8))
+    l1=int((128-(len(block)))/(8))
+    print("l: ", l1)
     padding=l1.to_bytes((l1.bit_length() + 7) // 8, 'big')
     p= ' '.join(format(byte, '08b') for byte in padding)
     m1=str(block)+(p*l1)
@@ -56,14 +46,15 @@ def incrementIv(iv):
     return bytes(iv_list)
 
 def main():
+
     #INPUT TESTS
-    
     message=b'1111111111111111111111111111111111111111111111111111111111111111111111111'
-    #message=b'ciaociaociaociaociaociaociaociao'
+    message=b'ciaociaociaociaociaociaociaociao'
     #message=b'CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC'
     #message=b""
     #message=b" "
-    #message=b'CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC'
+    message=b'CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC'
+    message=b"Hello we are team 10"
     print("original message: ", message)
     global applied_padding
     if(len(message)==0):
@@ -71,7 +62,7 @@ def main():
     if(message==" ".encode()):
         return
     
-    #transform the message in its byte representation
+    #transform the message in its bit representation
     m = ' '.join(format(byte, '08b') for byte in message)
     m=m.replace(' ',"")
     
@@ -82,11 +73,15 @@ def main():
     #divide the message into blocks
     for i in range(0, len(m), block_size):
         message_block.append(m[i:i+block_size])
-    print("message blocks: ", message_block)
+    #print("message blocks: ", message_block)
+    print("last block before padding: ", message_block[-1])
+    print("last block lenght: ", len(message_block[-1]))
     
     #check if padding needed
     if(len(message_block[-1])<128 and len(message_block[-1])%(8)==0):
         message_block[-1]=padding(message_block[-1])
+        print("last block after padding: ", message_block[-1])
+        print("lenght last block after padding: ", len(message_block[-1]))
     elif(len(message_block[-1])<128 and len(message_block[-1])%(8)!=0):
         print("The given input cannot be padded")
         return 0
@@ -112,7 +107,7 @@ def main():
         #encrypted_message+=str(cipher_block[i])
         encrypted_message+=str(binascii.hexlify(cipher_block[i]).decode())
         #print(binascii.hexlify(cipher_block[i]).decode())
-    print("encrypted message: ", encrypted_message)
+    #print("encrypted message: ", encrypted_message)
     
     #----- DECRYPTION -----
     decrypted_block=[]
@@ -128,7 +123,7 @@ def main():
     for i in range (len(decrypted_block)):
         decrypted_message+=str(decrypted_block[i].decode()) 
 
-    print("decrypted message: ", decrypted_message)
+    #print("decrypted message: ", decrypted_message)
     return 1
 
 if __name__ == "__main__":

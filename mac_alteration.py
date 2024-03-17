@@ -54,6 +54,7 @@ def Decrypt(key,block, iv):
 
 def Verify_MAC(ciphertext, tag, k1,k2):
     computed_tag = NMAC(ciphertext, k1,k2).digest()
+    print("received tag: ", computed_tag)
     return tag == computed_tag
 
 def main():
@@ -63,6 +64,7 @@ def main():
     #message=b'CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC'
     #message=b""
     #message=b""
+    message=b"Hello, we are team 10"
     print("original message: ", message)
     if(len(message)==0):
         return
@@ -113,16 +115,17 @@ def main():
     #generate tag
     (M_k1, M_k2)= macKeyGen()
     tag=NMAC(encrypted_message, M_k1, M_k2).digest()
-    print("tag: ", tag)
+    
 
-    #----- TAG ALTERATION  -----
+    #----- CIPHERTEX ALTERATION  -----
 
-    tag=incrementIv(tag)
+    encrypted_message+="example"
 
     #----- DECRYPTION -----
     #check the tag
+    print("expected tag: ", tag)
     if(Verify_MAC(encrypted_message, tag , M_k1, M_k2)==0):
-        print("The message has been alterated")
+        print("The message has been altered")
         return 0
     
     #if okay, then decrypt
